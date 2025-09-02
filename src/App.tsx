@@ -1,22 +1,24 @@
-
-//import TrainSimulation from "./components/train-simulation";
-//import Test from './components/test';
-//import AlertCard from './components/AlertCard';
-
 import AlertBox from "./components/AlertBox";
 import Header from "./components/Header";
 import Map from "./components/Map";
+import InfoBoxes from "./components/InfoBoxes";
 
 function App() {
   return (
     <div className="flex flex-col space-y-3 bg-black p-4 h-full w-full">
-      <Header section="Western" controller="Binod" status="Operational" /> 
+      {/* Top Header */}
+      <Header section="Western" controller="Binod" status="Operational" />
+
+      {/* Row: Map + AlertBox */}
       <div className="flex flex-row justify-between space-x-3 h-[80vh]">
         <Map />
-        <AlertBox /> 
+        <AlertBox />
       </div>
+
+      {/* New Row: Info Boxes */}
+      <InfoBoxes />
     </div>
   );
 }
 
-export default App
+export default App;
