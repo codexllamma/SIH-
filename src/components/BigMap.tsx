@@ -3,7 +3,7 @@ import { Stage, Layer, Line, Circle, Rect, Text } from "react-konva";
 
 /* ---------------------- Helper: track math ---------------------- */
 // compute segments + total length for a polyline points array
-function computeSegments(points) {
+function computeSegments(int: points) {
   const segments = [];
   let total = 0;
   for (let i = 0; i < points.length - 2; i += 2) {
@@ -75,7 +75,7 @@ const initialTrains = [
 
 /* -------------------------- Component --------------------------- */
 
-export default function App() {
+export default function BigMap() {
   // compute and cache track lengths to avoid recomputing every frame
   const trackMap = useRef(new Map());
   useEffect(() => {
@@ -223,9 +223,6 @@ export default function App() {
   /* ---------------------------- Render ---------------------------- */
   return (
     <div style={{ padding: 12 }}>
-      <h2 style={{ color: "#fff", margin: 8 }}>
-        Mini Control Room — Network with Junction Signals
-      </h2>
 
       <div style={{ display: "flex" }}>
         <Stage

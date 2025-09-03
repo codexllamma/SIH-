@@ -1,6 +1,5 @@
 import React from "react";
-import TrainSimulation from "./train-simulation";
-import BigMap from "./BigMap"; // 👈 your 248 lines of map code
+import TrainAnimation from "./TrainAnimation";
 
 const Map = () => {
   return (
@@ -8,16 +7,10 @@ const Map = () => {
       <h2 className="text-xl font-semibold mb-4 text-teal-300">
         Live Train Map
       </h2>
-      <div className="bg-gray-700 rounded-lg h-100 flex">
-        {/* Map area */}
+      <div className="bg-gray-700 rounded-lg h-96 flex">
         <div className="flex-1">
-          <BigMap />
+          <TrainAnimation />
         </div>
-
-        {/* Train Simulation area
-        <div className="flex-1">
-          <TrainSimulation />
-        </div> */}
       </div>
     </div>
   );

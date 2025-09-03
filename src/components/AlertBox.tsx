@@ -10,14 +10,18 @@ const AlertBox = () => {
       {/* Scrollable container for alerts */}
       <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar"> {/* Added flex-grow and pr-2, custom-scrollbar */}
         <div className="flex flex-col gap-2"> {/* This div now exclusively manages the spacing of AlertCards */}
-          {alerts.map((alert) => (
-            <AlertCard
-              key={alert.id} 
-              title={alert.title}
-              message={alert.message}
-              trainId={alert.trainId}
-            />
-          ))}
+            {alerts.length > 0 ? (
+            alerts.map((alert) => (
+                <AlertCard
+                key={alert.id}
+                title={alert.title}
+                message={alert.message}
+                trainId={alert.trainId}
+                />
+            ))
+            ) : (
+            <p className="text-white font-semibold text-lg">No alerts currently</p>
+            )}
         </div>
       </div>
     </div>

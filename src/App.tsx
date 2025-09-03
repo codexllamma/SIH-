@@ -15,7 +15,7 @@ function App() {
         <AlertBox />
       </div>
 
-      {/* New Row: Info Boxes */}
+      {/* New Row: Info Boxes Stats */}
       <InfoBoxes />
     </div>
   );
