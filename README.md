@@ -1,8 +1,8 @@
 
 Project Structure
-frontend          # Konva.js frontend UI
+rail-ai          # Konva.js frontend UI
 backend           # Flask/Node backend endpoints
-/rl/
+/model/
    rail_env5.py     # Current RL environment (collision/switch focus)
    rail_env6.py     # Work-in-progress (schedule adherence, cascading delays)
    train_ppo2.py     # Standard PPO training script
@@ -15,10 +15,8 @@ requirements.txt
 
 **Installation**
 
-Clone the repo and install Python requirements:
+Pull from the repo and install Python requirements:
 
-git clone https://github.com/your-username/rail-ppo.git
-cd rail-ppo
 pip install -r requirements.txt
 
 For GPU acceleration, install the correct torch version from PyTorch
@@ -26,19 +24,16 @@ For GPU acceleration, install the correct torch version from PyTorch
 
 **Training**
 
-Start fresh training:
-python rl/train_ppo.py
-Train continuously in chunks (safe for overnight runs):
-python rl/train_ppo_endless.py
-Resume training from a saved checkpoint:
-python rl/train_ppo_resume.py --checkpoint models/final/rail_ppo_best.zip
+
+python rl/train_ppo2.py
+Train continuously 
 All logs are saved to tb_logs/. View training progress with:
 tensorboard --logdir tb_logs --port 6006
 
 **Evaluation**
 
 Run a trained model deterministically in the environment:
-python rl/eval_model.py --model models/final/rail_ppo_best.zip
+python rl/eval_model.py --model models/best_model
 
 
 This will:
