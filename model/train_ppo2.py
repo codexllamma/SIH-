@@ -18,7 +18,7 @@ from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.callbacks import EvalCallback, CheckpointCallback, BaseCallback
 from stable_baselines3.common.logger import configure
 
-from rail_env5 import RailEnv
+from rail_env7 import RailEnv
 
 
 # Custom TensorBoard info logger
@@ -92,7 +92,7 @@ def main():
 
     env_config = {
         "n_tracks": 2,
-        "n_trains": 4,
+        "n_trains": 6,
         "track_length": 140,
         "train_length": 10,
         "max_speed": 3,
