@@ -1,4 +1,4 @@
-import React from "react";
+
 import TrainAnimation from "./TrainAnimation";
 
 const Map = () => {

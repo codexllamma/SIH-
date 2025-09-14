@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import Map from "./components/Map";
 import InfoBoxes from "./components/InfoBoxes";
 import BridgeStatus from "./components/BridgeStatus";
+import SuggestionsPanel from "./components/SuggestionsPanel";
 
 function App() {
   return (
@@ -20,6 +21,9 @@ function App() {
 
 
       <InfoBoxes />
+    </div>
+    <div>
+        <SuggestionsPanel />
     </div>
     <div className="min-h-screen bg-black text-white flex justify-center items-center">
       <BridgeStatus />

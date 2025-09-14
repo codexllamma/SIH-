@@ -1,75 +1,79 @@
-# backend/websocket_server.py
+# websocket_server.py (add or modify accordingly)
+
 import asyncio
 import json
-import logging
+import random
 import websockets
 from datetime import datetime
 
-logging.basicConfig(level=logging.INFO)
+# --- Fake Train State for Testing ---
+trains = [
+    {"id": 1, "position": [0, 0], "speed": 30, "delay": 0},
+    {"id": 2, "position": [1, 1], "speed": 25, "delay": 1.2}
+]
 
-HEARTBEAT_INTERVAL = 15  # seconds
+clients = set()
 
-def get_dummy_state():
-    return {
-        "type": "state_update",
-        "data": {
-            "timestamp": datetime.now().isoformat(),
-            "step": 0,
-            "trains": [
-                {"id": 1, "position": [0, 0], "speed": 30, "delay": 0.0},
-                {"id": 2, "position": [1, 1], "speed": 25, "delay": 1.2}
-            ],
-            "signals": {},
-            "metrics": {
-                "conflicts_prevented": 0,
-                "delays_mitigated": 0,
-                "on_time_arrivals": 0,
-                "total_delays": 0.0,
-                "system_efficiency": 1.0
+async def send_state():
+    """Periodically send fake state + suggestions to all clients."""
+    while True:
+        state = {
+            "type": "state_update",
+            "data": {
+                "timestamp": datetime.now().isoformat(),
+                "step": 0,
+                "trains": trains,
+                "signals": {},
+                "metrics": {
+                    "conflicts_prevented": 0,
+                    "delays_mitigated": 0,
+                    "on_time_arrivals": 0,
+                    "total_delays": 0,
+                    "system_efficiency": 1,
+                },
+                "suggestions": generate_fake_suggestions(),
+                "delay_predictions": {},
+                "network": {"congestion": 0.1, "throughput": 0, "cascade_factor": 1},
             },
-            "suggestions": [],
-            "delay_predictions": {},
-            "network": {"congestion": 0.1, "throughput": 0.0, "cascade_factor": 1.0}
         }
-    }
+        if clients:
+            msg = json.dumps(state)
+            await asyncio.gather(*(client.send(msg) for client in clients))
+        await asyncio.sleep(3)  # every 3 seconds
 
-connected_clients = set()
+def generate_fake_suggestions():
+    """Return random fake suggestions for trains."""
+    actions = ["slow_down", "speed_up", "hold_at_signal"]
+    return [
+        {
+            "train_id": random.choice(trains)["id"],
+            "action": random.choice(actions),
+            "confidence": round(random.uniform(0.6, 0.99), 2)
+        }
+        for _ in range(random.randint(1, 3))
+    ]
 
 async def handler(websocket):
-    connected_clients.add(websocket)
-    logging.info(f"Client connected: {websocket.remote_address}")
-
+    clients.add(websocket)
+    print("Client connected:", websocket.remote_address)
     try:
         async for message in websocket:
-            try:
-                data = json.loads(message)
-                if data.get("type") == "ping":
-                    # Respond to heartbeat ping
-                    await websocket.send(json.dumps({"type": "pong"}))
-                    continue
+            data = json.loads(message)
+            print("[Server] Received:", data)
 
-                logging.info(f"Received message: {data}")
-                if data.get("type") == "user_action":
-                    logging.info(f"User action received: {data['data']}")
-                    await websocket.send(json.dumps({"type": "ack", "data": {"status": "ok"}}))
-            except json.JSONDecodeError:
-                logging.warning(f"Received invalid JSON: {message}")
+            if data.get("type") == "user_action":
+                # Apply action (just log for now)
+                print(f"User action received: {data}")
+                # Later: update trains, call PPO, etc.
+
+            await websocket.send(json.dumps({"type": "ack", "data": {"status": "ok"}}))
     finally:
-        connected_clients.remove(websocket)
-        logging.info("Client disconnected")
-
-async def broadcast_state():
-    while True:
-        if connected_clients:
-            state = get_dummy_state()
-            message = json.dumps(state)
-            await asyncio.gather(*(client.send(message) for client in connected_clients))
-        await asyncio.sleep(1)
+        clients.remove(websocket)
 
 async def main():
-    async with websockets.serve(handler, "localhost", 8765, ping_interval=None):
-        logging.info("WebSocket server started on ws://localhost:8765")
-        await broadcast_state()
+    async with websockets.serve(handler, "localhost", 8765):
+        print("WebSocket server started on ws://localhost:8765")
+        await send_state()
 
 if __name__ == "__main__":
     asyncio.run(main())

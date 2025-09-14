@@ -1,41 +1,46 @@
-// src/components/Train.tsx
+
 import React from "react";
 import { Group, Rect, Text } from "react-konva";
-import type { TrainState } from "../types";
 
 interface TrainProps {
-  train: TrainState; // Pass the entire train state object
+  x: number;
+  y: number;
+  label: string;
+  colour: string;
+  signals: { id: number; x: number; y: number }[];
+  signalStates: Record<number, boolean>;
+  assignedSignals: number[];
+  route: string[];
+  tracksData: { id: string; points: number[] }[];
+  speed: number;
+  detectionDistance: number;
   debug?: boolean;
 }
 
-const Train: React.FC<TrainProps> = ({ train, debug = false }) => {
+const Train: React.FC<TrainProps> = ({
+  x,
+  y,
+  label,
+  colour,
+  signals,
+  signalStates,
+  assignedSignals,
+  route,
+  tracksData,
+  speed,
+  detectionDistance,
+  debug = false,
+}) => {
   const trainWidth = 40;
   const trainHeight = 20;
 
-  // The color changes based on its state
   const getTrainColor = () => {
-    if (train.haltTime > 0) return 'orange'; // Halted at station
-    if (train.speed < 0.1) return 'grey'; // Stopped
-    return 'royalblue';
+    if (speed < 0.1) return "grey";
+    return colour || "royalblue";
   };
 
   return (
-    <Group x={train.x} y={train.y - trainHeight / 2}>
-      {/* Collision Risk Indicator (a red halo) */}
-      {train.collisionRisk > 0.3 && (
-        <Rect
-          width={trainWidth + 10}
-          height={trainHeight + 10}
-          x={-5}
-          y={-5}
-          fill="red"
-          cornerRadius={8}
-          opacity={train.collisionRisk * 0.7} // Becomes more visible with higher risk
-          shadowColor="red"
-          shadowBlur={15}
-        />
-      )}
-      
+    <Group x={x} y={y - trainHeight / 2}>
       {/* Train Body */}
       <Rect
         width={trainWidth}
@@ -45,10 +50,10 @@ const Train: React.FC<TrainProps> = ({ train, debug = false }) => {
         stroke="black"
         strokeWidth={1}
       />
-      
-      {/* Label */}
+
+      {/* Train Label */}
       <Text
-        text={train.label}
+        text={label}
         fontSize={12}
         fontStyle="bold"
         fill="white"
@@ -57,11 +62,11 @@ const Train: React.FC<TrainProps> = ({ train, debug = false }) => {
         align="center"
         verticalAlign="middle"
       />
-      
+
       {/* Debug Info */}
       {debug && (
         <Text
-          text={`Spd: ${train.speed.toFixed(1)} | Trg: ${train.targetSpeed}`}
+          text={`Spd: ${speed.toFixed(1)} | Dist: ${detectionDistance}`}
           fontSize={10}
           fill="white"
           y={-15}

@@ -5,6 +5,7 @@ export interface TrainState {
   label: string;
   x: number;
   y: number;
+  colour: string;
   track: number; // The index of the track it's on
   speed: number; // Current speed
   targetSpeed: number; // The speed it's trying to reach

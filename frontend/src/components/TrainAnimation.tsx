@@ -1,9 +1,10 @@
 // src/components/TrainAnimation.tsx
-import React, { useState } from "react";
+import { useState } from "react";
 import { Stage, Layer, Line } from "react-konva";
 import Platform from "./platform";
 import Signal from "./Signal";
 import Train from "./Train";
+
 import {
   tracksData,
   platforms,
@@ -68,22 +69,21 @@ export default function TrainAnimation() {
         {/* Render trains */}
         {trains.map((train) => (
           <Train
-            key={train.id}
-            x={train.x}
-            y={train.y}
-            label={train.label}
-            colour={train.colour}
-            signals={signals}
-            signalStates={signalStates}
-            // pass assignedSignals as all signals (Train will filter by direction)
-            assignedSignals={signals.map((s) => s.id)}
-            // route comes from traindata (must be defined)
-            route={trainRoutes[train.id]}
-            tracksData={tracksData}
-            speed={120} // try 80-140 px/s depending on visual speed you want
-            detectionDistance={40}
-            debug={false}
-          />
+          key={train.id}
+          x={train.x}
+          y={train.y}
+          label={train.label}
+          colour={train.colour}
+          signals={signals}
+          signalStates={signalStates}
+          assignedSignals={signals.map((s) => s.id)}
+          route={trainRoutes[train.id]}
+          tracksData={tracksData}
+          speed={train.speed ?? 0}
+          detectionDistance={40}
+          debug={false}
+        />
+
         ))}
       </Layer>
     </Stage>

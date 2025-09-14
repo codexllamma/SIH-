@@ -16,12 +16,35 @@ function connectToPython() {
   });
 
   pythonSocket.on("message", (msg) => {
+  const parsed = JSON.parse(msg.toString());
+
+  if (parsed.type === "state_update") {
+    // Log suggestions for debugging
+    if (parsed.data?.suggestions?.length) {
+      console.log("[Bridge] Suggestions from backend:", parsed.data.suggestions);
+
+      // Send suggestions separately to frontend
+      const suggestionMsg = JSON.stringify({
+        type: "suggestion",
+        data: parsed.data.suggestions,
+      });
+
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(suggestionMsg);
+        }
+      });
+    }
+  }
+
+  // Still forward the original message (for TrainMap, metrics, etc.)
     wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(msg.toString());
       }
     });
   });
+
 
   pythonSocket.on("close", () => {
     console.log("[Bridge] Lost connection to Python, retrying...");
@@ -35,7 +58,7 @@ function connectToPython() {
 }
 
 function scheduleReconnect() {
-  if (reconnectTimeout) return; // avoid multiple reconnect attempts
+  if (reconnectTimeout) return; // Avoid multiple reconnect attempts
   reconnectTimeout = setTimeout(() => {
     reconnectTimeout = null;
     connectToPython();
@@ -50,12 +73,14 @@ function startHeartbeat() {
   }, HEARTBEAT_INTERVAL);
 }
 
+// --- WebSocket server for React frontend ---
 const wss = new WebSocketServer({ port: 3001 });
 
 wss.on("connection", (ws) => {
   console.log("[Bridge] React client connected");
 
   ws.on("message", (message) => {
+    console.log("[Bridge] Forwarding action to Python:", message.toString());
     if (pythonSocket && pythonSocket.readyState === WebSocket.OPEN) {
       pythonSocket.send(message.toString());
     }

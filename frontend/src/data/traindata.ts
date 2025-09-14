@@ -12,9 +12,9 @@ export const junctions = [
 
 // trains: each train is bound to a starting position (by x,y)
 export const trains = [
-  { id: "T1", label: "T1", colour: "aqua", x: 0, y: 80 },
-  { id: "T2", label: "T2", colour: "white", x: 0, y: 200 },
-  { id: "T3", label: "T3", colour: "yellow", x: 0, y: 320 },
+  { id: "T1", label: "T1", colour: "aqua", x: 0, y: 80, speed: 3 },
+  { id: "T2", label: "T2", colour: "white", x: 0, y: 200, speed: 3 },
+  { id: "T3", label: "T3", colour: "yellow", x: 0, y: 320, speed: 3 },
 ];
 
 export const platforms = [

@@ -1,7 +1,14 @@
-import React from "react";
-import { Stage, Layer, Line, Rect, Text } from "react-konva";
 
-const Platform = ({ x, y, label, colour }) => {
+import { Rect, Text } from "react-konva";
+
+interface PlatformProps {
+  x: number;
+  y: number;
+  label: string;
+  colour: string;
+}
+
+const Platform: React.FC<PlatformProps> = ({ x, y, label, colour }) => {
   return (
     <>
       <Rect

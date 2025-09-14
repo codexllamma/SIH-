@@ -1,19 +1,23 @@
-// src/components/Signal.tsx
+
 import React from "react";
 import { Group, Circle, Line } from "react-konva";
 
 interface SignalProps {
   x: number;
   y: number;
-  state: 'red' | 'green';
+  active: boolean; 
+  toggle: () => void;
 }
 
-const Signal: React.FC<SignalProps> = ({ x, y, state }) => {
+const Signal: React.FC<SignalProps> = ({ x, y, active, toggle }) => {
   const radius = 8;
   const stickLength = 20;
 
+  // Compute color based on active state
+  const fillColor = active ? "green" : "red";
+
   return (
-    <Group x={x} y={y}>
+    <Group x={x} y={y} onClick={toggle}>
       {/* Stick */}
       <Line points={[0, 0, 0, -stickLength]} stroke="gray" strokeWidth={2} />
       {/* Light */}
@@ -21,11 +25,11 @@ const Signal: React.FC<SignalProps> = ({ x, y, state }) => {
         x={0}
         y={-stickLength}
         radius={radius}
-        fill={state}
+        fill={fillColor}
         stroke="black"
         strokeWidth={1}
         shadowColor="black"
-        shadowBlur={state === 'red' ? 10 : 0}
+        shadowBlur={!active ? 10 : 0} // glow when red
         shadowOpacity={0.8}
       />
     </Group>
