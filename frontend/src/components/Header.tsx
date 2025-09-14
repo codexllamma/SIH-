@@ -4,7 +4,7 @@ interface HeaderProps {
   section: string;
   controller: string;
   status: "Operational" | "Down" | "Maintenance"; 
-  onRefresh: () => void; 
+  onRefresh?: () => void; 
 }
 
 const Header: React.FC<HeaderProps> = ({ section, controller, status, onRefresh }) => {
@@ -25,7 +25,7 @@ const Header: React.FC<HeaderProps> = ({ section, controller, status, onRefresh 
             <span className="text-green-400 font-medium">{status}</span>
           </span>
           <button
-            onClick={onRefresh}
+            onClick={onRefresh ? onRefresh : undefined}
             className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-200"
           >
             Refresh

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy import stats
 import pandas as pd
 from datetime import datetime, timedelta
-
+import os
 def analyze_train_delays(schedulet, plot_results=True):
     """
     Analyze historical train delays and generate Monte Carlo scenarios.
@@ -15,7 +15,8 @@ def analyze_train_delays(schedulet, plot_results=True):
     Returns:
     dict: Dictionary containing delay statistics and scenarios for each train
     """
-    schedulet=pd.read_csv("trainsmall.csv")
+    csv_path = os.path.join(os.path.dirname(__file__), "trainsmall.csv")
+    schedulet=pd.read_csv(csv_path)
     schedulet
     # Separate delays by train
     a_delays = []
