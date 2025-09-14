@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 
-
 type Suggestion = {
   train_id: number;
   action: string;
   confidence: number;
 };
 
-export default function SuggestionsPanel() {
+export default function SuggestionsBox() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [socket, setSocket] = useState<WebSocket | null>(null);
 
@@ -15,24 +14,27 @@ export default function SuggestionsPanel() {
     const ws = new WebSocket("ws://localhost:3001");
     setSocket(ws);
 
-    ws.onopen = () => console.log("[SuggestionsPanel] Connected to bridge");
+    ws.onopen = () => console.log("[SuggestionsBox] Connected to bridge");
     ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
         if (msg.type === "suggestion") {
-          console.log("[Frontend] Received suggestions:", msg.data); 
           setSuggestions(msg.data || []);
         }
       } catch (e) {
-        console.error("[SuggestionsPanel] WS parse error:", e);
+        console.error("[SuggestionsBox] WS parse error:", e);
       }
     };
-    ws.onclose = () => console.log("[SuggestionsPanel] Disconnected");
+    ws.onclose = () => console.log("[SuggestionsBox] Disconnected");
 
     return () => ws.close();
   }, []);
 
-  function sendUserAction(train_id: number, action: string, decision: "accept" | "reject") {
+  function sendUserAction(
+    train_id: number,
+    action: string,
+    decision: "accept" | "reject"
+  ) {
     if (!socket || socket.readyState !== WebSocket.OPEN) return;
     socket.send(
       JSON.stringify({
@@ -43,39 +45,42 @@ export default function SuggestionsPanel() {
   }
 
   return (
-    <div className="bg-gray-900 text-white p-4 rounded-2xl shadow-lg w-full max-w-md mx-auto">
-      <h2 className="text-xl font-bold mb-3">AI Suggestions</h2>
-      {suggestions.length === 0 && (
-        <p className="text-gray-400 text-sm">No suggestions right now.</p>
-      )}
-      <div className="space-y-3">
+    <div className="w-1/4 h-[80vh] bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 flex flex-col">
+      {/* Heading */}
+      <h2 className="text-xl font-semibold text-teal-300 mb-4">AI Suggestions</h2>
+
+      {/* Scrollable content */}
+      <div className="flex-grow overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+        {suggestions.length === 0 && (
+          <p className="text-gray-400 text-sm">No suggestions right now.</p>
+        )}
+
         {suggestions.map((s, i) => (
           <div
             key={i}
-            className="bg-gray-800 p-3 rounded-xl shadow-md flex justify-between items-center"
+            className="bg-gray-700 p-3 rounded-xl shadow-md flex flex-col"
           >
+            {/* Train & action */}
             <div>
-              <p className="text-lg font-semibold">
+              <p className="text-lg font-semibold text-white">
                 🚆 Train {s.train_id} → {s.action.replace("_", " ")}
               </p>
               <p className="text-gray-400 text-xs">
                 Confidence: {(s.confidence * 100).toFixed(1)}%
               </p>
             </div>
-            <div className="flex gap-2">
-              <button
-                className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded-xl text-sm"
-                onClick={() => sendUserAction(s.train_id, s.action, "accept")}
-              >
-                Accept
-              </button>
-              <button
-                className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-xl text-sm"
-                onClick={() => sendUserAction(s.train_id, s.action, "reject")}
-              >
-                Reject
-              </button>
-            </div>
+
+            {/* Buttons */}
+            <div className="mt-3 flex space-x-2">
+        <button className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 rounded-lg transition-colors duration-200"
+        >
+          Accept
+        </button>
+        <button className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 rounded-lg transition-colors duration-200"
+        >
+          Dismiss
+        </button>
+      </div>
           </div>
         ))}
       </div>

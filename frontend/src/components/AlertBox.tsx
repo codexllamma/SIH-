@@ -1,6 +1,4 @@
-/*
-import { alerts } from "../data/alerts"; 
-import AlertCard from './SuggestionsPanel';
+import SuggestionsPanel from "./SuggestionsPanel";
 
 const AlertBox = () => {
   return (
@@ -12,12 +10,7 @@ const AlertBox = () => {
         <div className="flex flex-col gap-2"> 
             {alerts.length > 0 ? (
             alerts.map((alert) => (
-                <AlertCard
-                key={alert.id}
-                title={alert.title}
-                message={alert.message}
-                trainId={alert.trainId}
-                />
+                <SuggestionsPanel />
             ))
             ) : (
             <p className="text-white font-semibold text-lg">No alerts currently</p>
