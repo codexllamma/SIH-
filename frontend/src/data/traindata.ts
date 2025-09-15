@@ -46,7 +46,7 @@ export const trains = [
     label: "T4",
     colour: "orange",
     x: 0,
-    y: 80,   // reusing T1 track for now
+    y: 120,   // reusing T1 track for now
     speed: 1.8,
     delay: 0,
 

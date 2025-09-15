@@ -12,7 +12,6 @@ Key features:
 - Correct use of torch activation callables (nn.ReLU, not string)
 - Robust test loop and TensorBoard logging callback
 
-Drop this next to your `rail_env7.py` (or update the import to match your environment module).
 """
 
 import os
@@ -36,7 +35,7 @@ from stable_baselines3.common.logger import configure
 from model.rail_env7 import RailEnv
 
 
-# ----------------------------- Helper utilities -----------------------------
+
 
 def safe_reset(env):
     """Call env.reset() and return only the observation (handles gym vs gymnasium).

@@ -17,8 +17,24 @@ export function useBridgeWS() {
     wsRef.current.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        
         console.log("[Frontend] Received:", data);
         setLastMessage(data);
+        
+        if (data.type === "suggestion") {
+        (data.data || []).forEach((s: any) => {
+          window.dispatchEvent(
+            new CustomEvent("applySuggestion", {
+              detail: {
+                trainId: s.trainId,
+                action: s.type,
+                decision: "accept", // or let user trigger accept later
+              },
+            })
+          );
+        });
+       }
+
       } catch (err) {
         console.error("[Frontend] Failed to parse message:", err);
       }
