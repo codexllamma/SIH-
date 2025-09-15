@@ -134,7 +134,9 @@ export default function SuggestionsBox() {
             <div className="mt-3 flex space-x-2">
               <button
                 className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 rounded-lg transition-colors duration-200"
-                onClick={() => sendUserAction(s.id, s.trainId, s.title, "accept")}
+                onClick={() =>
+                bus.dispatchEvent(new CustomEvent("applySuggestion", { detail: { trainId: s.trainId, action: s.title, decision: "accept" } }))
+                }
               >
                 Accept
               </button>
