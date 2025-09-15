@@ -10,12 +10,80 @@ export const junctions = [
   { id: "J2", x: 500, y: 200, connectedTracks: ["T2", "T4"] }, // include T4
 ];
 
-// trains: each train is bound to a starting position (by x,y)
-export const trains = [
-  { id: "T1", label: "T1", colour: "aqua", x: 0, y: 80, speed: 3 },
-  { id: "T2", label: "T2", colour: "white", x: 0, y: 200, speed: 3 },
-  { id: "T3", label: "T3", colour: "yellow", x: 0, y: 320, speed: 3 },
-];
+export const trains = 
+[
+  {
+    "id": "T101",
+    "label": "Rajdhani Express",
+    "colour": "red",
+    "x": 0,
+    "y": 50,
+    "speed": 2.5,
+    "delay": 0,
+    "route": ["Delhi", "Kanpur", "Prayagraj", "Patna", "Howrah"]
+  },
+  {
+    "id": "T202",
+    "label": "Shatabdi Express",
+    "colour": "blue",
+    "x": 0,
+    "y": 150,
+    "speed": 3.0,
+    "delay": 10,
+  },
+  {
+    "id": "T303",
+    "label": "Duronto Express",
+    "colour": "green",
+    "x": 0,
+    "y": 250,
+    "speed": 2.0,
+    "delay": 5,
+    
+  },
+  {
+    "id": "T404",
+    "label": "Garib Rath",
+    "colour": "orange",
+    "x": 0,
+    "y": 350,
+    "speed": 1.8,
+    "delay": 0,
+    
+  }
+]
+
+export const suggestions = 
+[
+  {
+    "trainId": "T2",
+    "suggestionId": "S1",
+    "type": "reroute",
+    "message": "Reroute T2 from track 1 to 2",
+    "impact": -8
+  },
+  {
+    "trainId": "T3",
+    "suggestionId": "S2",
+    "type": "hold",
+    "message": "Hold T3 at P1 to let T1 pass.",
+    "impact": 5
+  },
+  {
+    "trainId": "T1",
+    "suggestionId": "S3",
+    "type": "priority",
+    "message": "Give T1 priority in crossing junction.",
+    "impact": -12
+  }
+]
+
+export const delays = 
+[
+  { "trainId": "T101", "station": "Kanpur", "scheduled": "12:30", "actual": "12:45", "delay": 15 },
+  { "trainId": "T202", "station": "Jhansi", "scheduled": "14:10", "actual": "14:25", "delay": 15 },
+  { "trainId": "T303", "station": "Vadodara", "scheduled": "16:00", "actual": "16:05", "delay": 5 }
+]
 
 export const platforms = [
   { id: "APF1", label: "A/PF1", colour: "lightblue", x: 50, y: 110 },

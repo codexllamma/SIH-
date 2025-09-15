@@ -1,9 +1,11 @@
 // src/components/TrainAnimation.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Stage, Layer, Line } from "react-konva";
 import Platform from "./platform";
 import Signal from "./Signal";
 import Train from "./Train";
+import bus from "../utils/eventBus";
+import { trains as initialTrains } from "../data/traindata";
 
 import {
   tracksData,
@@ -17,6 +19,7 @@ export default function TrainAnimation() {
   const [signalStates, setSignalStates] = useState<Record<number, boolean>>(
     Object.fromEntries(signals.map((s) => [s.id, false]))
   );
+  const [localTrains, setLocalTrains] = useState(initialTrains);
 
   const toggleSignal = (id: number) => {
     setSignalStates((prev) => {
@@ -29,6 +32,38 @@ export default function TrainAnimation() {
       return { ...prev, [id]: newState };
     });
   };
+
+  useEffect(() => {
+  const handler = (ev: Event) => {
+    const custom = ev as CustomEvent;
+    const { trainId, action, decision } = custom.detail || {};
+    if (!trainId || decision !== "accept") return;
+
+    setLocalTrains((prev) =>
+      prev.map((t) => {
+        if (t.id !== trainId) return t;
+        const nt = { ...t };
+        const a = (action || "").toLowerCase();
+        if (a.includes("reroute") || a.includes("track")) {
+          nt.y = (nt.y || 0) + 40; // visually shift to a different track
+          nt.colour = "orange";
+        } else if (a.includes("hold") || a.includes("delay")) {
+          nt.delay = (nt.delay || 0) + 5;
+          nt.colour = "red";
+        } else if ((nt.delay || 0) + 0 < 0) {
+          nt.colour = "lime";
+        } else {
+          nt.colour = "teal";
+        }
+        return nt;
+      })
+    );
+  };
+
+    bus.addEventListener("applySuggestion", handler as EventListener);
+    return () => bus.removeEventListener("applySuggestion", handler as EventListener);
+  }, []);
+
 
   return (
     <Stage width={883} height={384}>
@@ -67,7 +102,7 @@ export default function TrainAnimation() {
         ))}
 
         {/* Render trains */}
-        {trains.map((train) => (
+        {localTrains.map((train) => (
           <Train
           key={train.id}
           x={train.x}
