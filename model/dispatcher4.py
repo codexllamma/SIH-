@@ -830,6 +830,7 @@ class DelayAwareDispatcher:
         """Enhanced main simulation step with comprehensive delay integration"""
         try:
             # Update delay predictions more frequently
+            self.suggestions_queue.clear()
             current_time = time.time()
             if current_time - self.last_delay_update >= self.config.get("delay_update_interval", 10):
                 self._update_delay_predictions_enhanced()
@@ -1076,4 +1077,27 @@ class DelayAwareDispatcherContext:
         if self.dispatcher:
             self.dispatcher.cleanup()
 
-# Example usage and testing
+if __name__ == "__main__":
+    import asyncio
+    import logging
+
+    logger = logging.getLogger(__name__)
+    dispatcher = DelayAwareDispatcher()
+
+    async def main():
+        """Runs the dispatcher in a simple endless loop without WebSocket server."""
+        update_interval = 1.0 / dispatcher.config.get("update_rate", 2)
+        logger.info("Starting dispatcher loop (no WebSocket server)...")
+
+        while True:
+            try:
+                await dispatcher.step()
+                await asyncio.sleep(update_interval)
+            except KeyboardInterrupt:
+                logger.info("Dispatcher stopped by user.")
+                break
+            except Exception as e:
+                logger.error(f"Error in dispatcher loop: {e}", exc_info=True)
+                await asyncio.sleep(5)
+
+    asyncio.run(main())

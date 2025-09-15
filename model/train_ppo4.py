@@ -33,7 +33,7 @@ from stable_baselines3.common.callbacks import (
 from stable_baselines3.common.logger import configure
 
 # 
-from rail_env7 import RailEnv
+from model.rail_env7 import RailEnv
 
 
 # ----------------------------- Helper utilities -----------------------------
@@ -176,16 +176,16 @@ def main():
 
     # --- Example env config. Replace or load from file as you prefer ---
     env_config = {
-        "n_tracks": 4,
+        "n_tracks": 3,
         # Keep `max_trains` in config so obs/action spaces are consistent regardless of curriculum stage
-        "max_trains": 10,
-        "n_trains": 10,
-        "track_length": 1200,
+        "max_trains": 5,
+        "n_trains": 5,
+        "track_length": 900,
         "train_length": 25,
         "station_halt_time": 12,
         "max_speed": 4,
-        "max_steps": 1800,
-        "spawn_points": [50, 320, 680,1450],
+        "max_steps": 1200,
+        "spawn_points": [50, 320, 680],
         "log_dir": LOG_DIR,
     }
 
@@ -269,7 +269,7 @@ def main():
 
     # Training hyperparams
     CHUNK_STEPS = 100_000
-    MAX_TOTAL_STEPS = 2_500_000
+    MAX_TOTAL_STEPS = 1_000_000
 
     total_steps_trained = chunk_idx * CHUNK_STEPS
 

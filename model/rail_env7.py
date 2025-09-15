@@ -13,26 +13,26 @@ import logging
 # Simplified configuration with hardcoded values
 SIMPLIFIED_CONFIG = {
     # Fixed topology
-    "n_tracks": 4,
-    "n_trains": 10,  # Hardcoded
-    "track_length": 1200,
+    "n_tracks": 3,
+    "n_trains": 5,  # Hardcoded
+    "track_length": 900,
     "train_length": 25,
     "station_halt_time": 12,
     "max_speed": 4,
     "accel_units": 1,
     "decel_units": 1,
-    "max_steps": 1800,  # Hardcoded
+    "max_steps": 1200,  # Hardcoded
     "stations": {
         "A": (20, 50),
-        "B": (760, 790),
-        "C": (1420, 1450)
+        "B": (860, 890),
+
     },
-    "junctions": [320, 680, 1450],
+    "junctions": [320, 680],
     "spawn_points": [50, 320, 680],
     "unit_meters": 10.0,
     "timestep_seconds": 2.0,
     "brake_mps2": 1.2,
-    "track_speed_limits": [4, 4, 4, 4],
+    "track_speed_limits": [4, 4, 4],
     "cascade_N": 8,
     "log_dir": "runs",
     
@@ -159,12 +159,12 @@ class RailEnv(gym.Env):
     
     def _init_base_properties(self):
         """Initialize basic environment properties with hardcoded values."""
-        self.n_tracks = 4
-        self.n_trains = 10 # Hardcoded
-        self.track_length = 1200.0
+        self.n_tracks = 3
+        self.n_trains = 5 # Hardcoded
+        self.track_length = 900.0
         self.train_length = 25.0
         self.max_speed = 4
-        self.max_steps = 1800  # Hardcoded
+        self.max_steps = 1200  # Hardcoded
         
         # Layout
         self.stations = {k: tuple(v) for k, v in self.cfg["stations"].items()}
@@ -1655,23 +1655,16 @@ class SimplifiedTrainingManager:
 
 # Example usage and testing
 if __name__ == "__main__":
-    # --- STEP 1: DEFINE YOUR STAGE ---
-    # The model you just trained and saved from the first batch
-    # Rename your 'best_model.zip' from Stage 1 to this, or update the path.
-    STAGE_1_MODEL_PATH = "./best_model/20250912-074011/best_model.zip" 
-
-    # --- STEP 2: UPDATE YOUR CONFIG FOR THE NEW STAGE ---
+    
     # This will be automatically used by the RailEnv when the trainer starts
-    SIMPLIFIED_CONFIG["n_tracks"] = 4
-    SIMPLIFIED_CONFIG["n_trains"] = 10 # Moving up from 4 to 7 trains
-    SIMPLIFIED_CONFIG["track_speed_limits"] = [4, 4, 4, 4]
+    # In SIMPLIFIED_CONFIG
+    SIMPLIFIED_CONFIG["start_times"] = [0, 5, 20, 30, 40] # Train 2 starts just 5 steps after Train 1
+    SIMPLIFIED_CONFIG["start_positions"] = [0, 0, 100, 150, 200] # They both start at the same spot
+    SIMPLIFIED_CONFIG["start_tracks"] = [0, 0, 1, 2, 3] # And on the same track!
+    SIMPLIFIED_CONFIG["n_tracks"] = 3
+    SIMPLIFIED_CONFIG["n_trains"] = 5 
+    SIMPLIFIED_CONFIG["track_speed_limits"] = [4, 4, 4]
 
-    # --- STEP 3: RUN THE TRAINING FOR THE NEW STAGE ---
-    print(f"--- Starting Training Plan (Stage 2: 3 Tracks, 7 Trains) ---")
     
     trainer = SimplifiedTrainingManager(env_config=SIMPLIFIED_CONFIG)
     
-    # Pass the Stage 1 model path to the train method
-    trainer.train(resume_from_model=STAGE_1_MODEL_PATH, stage_name="stage2")
-    
-    print("\n--- Stage 2 training script finished! ---")
