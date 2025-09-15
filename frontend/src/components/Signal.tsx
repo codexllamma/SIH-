@@ -14,7 +14,7 @@ const Signal: React.FC<SignalProps> = ({ x, y, active, toggle }) => {
   const stickLength = 20;
 
   // Compute color based on active state
-  const fillColor = active ? "green" : "red";
+  const fillColor = active ? "red" : "green";
 
   return (
     <Group x={x} y={y} onClick={toggle}>

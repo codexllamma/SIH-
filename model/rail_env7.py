@@ -69,6 +69,7 @@ SIMPLIFIED_CONFIG = {
         "include_predictive_features": True,
         "include_neighbor_states": True,
         "spatial_awareness_radius": 200.0,
+        
     }
 }
 
@@ -128,6 +129,8 @@ class RailEnv(gym.Env):
             self._deep_update(base, config)
         self.cfg = base
         
+        
+
         # Initialize base environment properties (hardcoded values)
         self._init_base_properties()
         
@@ -210,7 +213,7 @@ class RailEnv(gym.Env):
         self.start_times = np.zeros(self.n_trains, dtype=np.int32)
         self.planned_arrival = np.zeros(self.n_trains, dtype=np.int32)
         self.actual_arrival = np.full(self.n_trains, -1, dtype=np.int32)
-        
+        self.forced_stop_steps = np.zeros(self.n_trains, dtype=int)
         # Enhanced state tracking
         self.last_speeds = np.zeros(self.n_trains, dtype=np.int32)
         self.acceleration_history = [deque(maxlen=5) for _ in range(self.n_trains)]
@@ -507,14 +510,89 @@ class RailEnv(gym.Env):
         
         return min(1.0, risk)
     
-    def _compute_current_delay(self, train_idx: int) -> int:
-        """Compute current delay for a train."""
+    def _compute_current_delay(self, train_idx: int) -> float:
+        """Enhanced delay calculation returning float (minutes)"""
         if self.actual_arrival[train_idx] >= 0:
-            return max(0, self.actual_arrival[train_idx] - self.planned_arrival[train_idx])
-        elif self.started[train_idx]:
-            return max(0, self.current_step - self.planned_arrival[train_idx])
-        return 0
+            # Train has arrived - calculate actual delay
+            return max(0.0, float(self.actual_arrival[train_idx] - self.planned_arrival[train_idx]) * (self.timestep_s / 60.0))
+        elif self.started[train_idx] and not self.arrived[train_idx]:
+            # Train is running - estimate current delay
+            expected_position = (self.current_step - self.start_times[train_idx]) * 2.0  # Expected progress
+            actual_position = self.positions[train_idx]
+            
+            if actual_position < expected_position:
+                delay_steps = (expected_position - actual_position) / 2.0
+                return max(0.0, delay_steps * (self.timestep_s / 60.0))  # Convert to minutes
+        
+        return 0.0
     
+    def _time_to_collision(self, train_idx: int) -> float:
+        """Calculate time to collision in seconds"""
+        if not self.started[train_idx] or self.arrived[train_idx] or self.disabled[train_idx]:
+            return float('inf')
+        
+        if self.speeds[train_idx] == 0:
+            return float('inf')
+        
+        track = self.tracks[train_idx]
+        pos = self.positions[train_idx]
+        speed = self.speeds[train_idx]
+        
+        min_ttc = float('inf')
+        
+        for other_idx in range(self.n_trains):
+            if other_idx == train_idx or self.tracks[other_idx] != track:
+                continue
+            if not self.started[other_idx] or self.arrived[other_idx] or self.disabled[other_idx]:
+                continue
+            
+            other_pos = self.positions[other_idx]
+            other_speed = self.speeds[other_idx]
+            
+            # Only consider if we're approaching from behind
+            if pos < other_pos:
+                relative_speed = speed - other_speed
+                if relative_speed > 0:  # We're catching up
+                    distance = other_pos - pos - self.train_length
+                    if distance > 0:
+                        ttc_steps = distance / relative_speed
+                        ttc_seconds = ttc_steps * self.timestep_s
+                        min_ttc = min(min_ttc, ttc_seconds)
+        
+        return min_ttc if min_ttc != float('inf') else 999.0
+    
+    def _distance_to_next_junction(self, train_idx: int) -> float:
+        """Calculate distance to next junction"""
+        if not self.started[train_idx] or self.arrived[train_idx]:
+            return float('inf')
+        
+        current_pos = self.positions[train_idx]
+        
+        # Find next junction ahead
+        for junction_pos in sorted(self.junctions):
+            if junction_pos > current_pos:
+                return float(junction_pos - current_pos)
+        
+        return float('inf')
+        
+    def _is_in_switch_zone(self, train_idx: int) -> bool:
+        """Check if train is in a track switching zone"""
+        if not self.started[train_idx] or self.arrived[train_idx] or self.disabled[train_idx]:
+            return False
+        
+        current_pos = self.positions[train_idx]
+        
+        # Check if near any junction (within switching range)
+        for junction_pos in self.junctions:
+            if abs(current_pos - junction_pos) <= 10.0:  # 10 units switching zone
+                return True
+        
+        return False
+    
+    def max_speed(self) -> int:
+        """Maximum allowed speed for trains"""
+        return self.cfg.get("max_speed", 4)
+
     def _compute_optimal_speed(self, train_idx: int) -> float:
         """Compute optimal speed for current situation."""
         if not self.started[train_idx] or self.arrived[train_idx] or self.disabled[train_idx]:
@@ -730,6 +808,11 @@ class RailEnv(gym.Env):
         
         # Process train starts
         for i in range(self.n_trains):
+            if self.forced_stop_steps[i] > 0:
+                self.speeds[i] = 0
+                action[i] = 4  
+                self.forced_stop_steps[i] -= 1
+
             if not self.started[i] and self.current_step >= self.start_times[i]:
                 self.started[i] = True
                 self.speeds[i] = 0
@@ -1054,7 +1137,6 @@ class RailEnv(gym.Env):
         
         # Arrival rewards
         breakdown["on_time_arrival"] = efficiency_cfg["on_time_arrival"] * components["arrivals_on_time"]
-        breakdown["early_arrival"] = efficiency_cfg["early_arrival"] * components["arrivals_early"]
         breakdown["grace_arrival"] = efficiency_cfg["grace_arrival"] * components["arrivals_grace"]
         breakdown["late_arrival"] = efficiency_cfg["late_arrival"] * components["arrivals_late"]
         
@@ -1181,6 +1263,24 @@ class RailEnv(gym.Env):
         
         return False
     
+    def _calculate_eta_deviation(self, train_id: int) -> float:
+        """Calculate how far off the train is from expected arrival time"""
+        if self.arrived[train_id]:
+            return 0.0
+        
+        # Estimate remaining time based on current speed and distance
+        remaining_dist = self.destinations[train_id] - self.positions[train_id]
+        if remaining_dist <= 0:
+            return 0.0
+        
+        current_speed = max(1, self.speeds[train_id])
+        estimated_remaining_time = remaining_dist / current_speed
+        
+        # Compare with planned remaining time
+        planned_remaining = max(0, self.planned_arrival[train_id] - self.current_step)
+        
+        return float(estimated_remaining_time - planned_remaining)
+    
     def _prepare_info_dict(self, components: Dict[str, float], breakdown: Dict[str, float], 
                           episode_end: bool) -> Dict[str, Any]:
         """Prepare comprehensive info dictionary."""
@@ -1220,6 +1320,30 @@ class RailEnv(gym.Env):
             })
         
         return info
+    
+    def _calculate_schedule_pressure(self, train_id: int) -> float:
+        """Calculate pressure from schedule constraints (0-1 scale)"""
+        if self.arrived[train_id]:
+            return 0.0
+        
+        current_delay = self._compute_current_delay(train_id)
+        time_remaining = max(1, self.planned_arrival[train_id] - self.current_step)
+        
+        # Higher pressure means less time buffer
+        pressure = min(1.0, current_delay / time_remaining)
+        return float(pressure)
+    
+    def _can_request_priority(self, train_idx: int) -> bool:
+        """Check if train can request priority"""
+        # Simple logic - can request if near junction and delayed
+        return (self._distance_to_next_junction(train_idx) < 50 and
+                self._compute_current_delay(train_idx) > 5)
+    
+    def _can_switch_track(self, train_idx: int) -> bool:
+        """Check if train can safely switch tracks"""
+        return (self._is_in_switch_zone(train_idx) and 
+                self.speeds[train_idx] <= 1 and
+                self.collision_risks[train_idx] < 0.3)
     
     def _is_in_switch_zone(self, train_idx: int) -> bool:
         """Check if train is in a switching zone."""
